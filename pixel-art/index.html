@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>像素画 - 猫咪 🐱</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .color-picker-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .color-picker-wrapper label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        #colorPicker {
+            width: 60px;
+            height: 40px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .preset-colors {
+            display: flex;
+            gap: 8px;
+        }
+
+        .preset-color {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: 2px solid #ddd;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .preset-color:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .preset-color.active {
+            border-color: #333;
+            border-width: 3px;
+            transform: scale(1.15);
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .pixel-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+
+        .pixel-row {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
+
+        .pixel {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #ddd;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.1s;
+            position: relative;
+        }
+
+        .pixel:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            border-color: #999;
+        }
+
+        .pixel:active {
+            transform: scale(0.95);
+        }
+
+        .info {
+            text-align: center;
+            color: #666;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transform: translateX(400px);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐱 像素画 - 猫咪 🐱</h1>
+        
+        <div class="controls">
+            <div class="color-picker-wrapper">
+                <label for="colorPicker">选择颜色:</label>
+                <input type="color" id="colorPicker" value="#000000">
+            </div>
+            
+            <div class="preset-colors">
+                <div class="preset-color active" style="background-color: #000000;" data-color="#000000" title="黑色"></div>
+                <div class="preset-color" style="background-color: #ffffff; border-color: #999;" data-color="#ffffff" title="白色"></div>
+                <div class="preset-color" style="background-color: #ff6b6b;" data-color="#ff6b6b" title="红色"></div>
+                <div class="preset-color" style="background-color: #4ecdc4;" data-color="#4ecdc4" title="青色"></div>
+                <div class="preset-color" style="background-color: #ffe66d;" data-color="#ffe66d" title="黄色"></div>
+                <div class="preset-color" style="background-color: #95e1d3;" data-color="#95e1d3" title="绿色"></div>
+                <div class="preset-color" style="background-color: #a8e6cf;" data-color="#a8e6cf" title="浅绿"></div>
+                <div class="preset-color" style="background-color: #ff8b94;" data-color="#ff8b94" title="粉色"></div>
+            </div>
+        </div>
+
+        <div class="pixel-grid" id="pixelGrid">
+            <!-- 4 rows with varying pixels (10-15 per row) -->
+        </div>
+
+        <div class="button-group">
+            <button onclick="clearGrid()">清空画布</button>
+            <button onclick="resetCat()">重置猫咪</button>
+            <button onclick="copyToClipboard()">复制到剪贴板</button>
+        </div>
+
+        <div class="info">
+            💡 点击色块即可绘画，右键点击清除单个色块
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // Configuration for the grid - 4 rows with varying pixel counts
+        const gridConfig = [
+            12, // Row 1: 12 pixels
+            15, // Row 2: 15 pixels
+            13, // Row 3: 13 pixels
+            10  // Row 4: 10 pixels
+        ];
+
+        let currentColor = '#000000';
+        const pixelGrid = document.getElementById('pixelGrid');
+        const colorPicker = document.getElementById('colorPicker');
+        const presetColors = document.querySelectorAll('.preset-color');
+
+        // Cat shape preset based on the characters ▜ ▛ █ ▘
+        // Using a simple cat face design
+        const catPreset = [
+            // Row 1 (12 pixels) - ears
+            ['#ffffff', '#000000', '#000000', '#ffffff', '#ffffff', '#ffffff', '#ffffff', '#ffffff', '#000000', '#000000', '#ffffff', '#ffffff'],
+            // Row 2 (15 pixels) - head and eyes
+            ['#ffffff', '#000000', '#ff6b6b', '#000000', '#ffffff', '#000000', '#000000', '#000000', '#ffffff', '#000000', '#ff6b6b', '#000000', '#ffffff', '#ffffff', '#ffffff'],
+            // Row 3 (13 pixels) - face features
+            ['#ffffff', '#000000', '#000000', '#000000', '#000000', '#000000', '#ffe66d', '#000000', '#000000', '#000000', '#000000', '#000000', '#ffffff'],
+            // Row 4 (10 pixels) - mouth
+            ['#ffffff', '#ffffff', '#000000', '#000000', '#ff6b6b', '#000000', '#000000', '#ff6b6b', '#000000', '#000000']
+        ];
+
+        // Initialize grid
+        function initGrid() {
+            pixelGrid.innerHTML = '';
+            gridConfig.forEach((pixelCount, rowIndex) => {
+                const row = document.createElement('div');
+                row.className = 'pixel-row';
+                
+                for (let i = 0; i < pixelCount; i++) {
+                    const pixel = document.createElement('div');
+                    pixel.className = 'pixel';
+                    pixel.style.backgroundColor = '#ffffff';
+                    pixel.dataset.row = rowIndex;
+                    pixel.dataset.col = i;
+                    
+                    // Left click to paint
+                    pixel.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        pixel.style.backgroundColor = currentColor;
+                    });
+                    
+                    // Right click to clear
+                    pixel.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        pixel.style.backgroundColor = '#ffffff';
+                    });
+                    
+                    // Click on pixel to copy its color
+                    pixel.addEventListener('dblclick', (e) => {
+                        e.preventDefault();
+                        const pixelColor = pixel.style.backgroundColor;
+                        // Convert rgb to hex if needed
+                        const rgbMatch = pixelColor.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+                        if (rgbMatch) {
+                            const hex = '#' + [rgbMatch[1], rgbMatch[2], rgbMatch[3]]
+                                .map(x => parseInt(x).toString(16).padStart(2, '0'))
+                                .join('');
+                            setCurrentColor(hex);
+                        } else {
+                            setCurrentColor(pixelColor);
+                        }
+                        showNotification('已选择该色块的颜色！');
+                    });
+                    
+                    row.appendChild(pixel);
+                }
+                
+                pixelGrid.appendChild(row);
+            });
+        }
+
+        // Set current color
+        function setCurrentColor(color) {
+            currentColor = color;
+            colorPicker.value = color;
+            
+            // Update active preset color
+            presetColors.forEach(pc => {
+                if (pc.dataset.color === color) {
+                    pc.classList.add('active');
+                } else {
+                    pc.classList.remove('active');
+                }
+            });
+        }
+
+        // Color picker change event
+        colorPicker.addEventListener('input', (e) => {
+            setCurrentColor(e.target.value);
+            // Remove active from all preset colors
+            presetColors.forEach(pc => pc.classList.remove('active'));
+        });
+
+        // Preset color click events
+        presetColors.forEach(presetColor => {
+            presetColor.addEventListener('click', () => {
+                setCurrentColor(presetColor.dataset.color);
+            });
+        });
+
+        // Clear grid
+        function clearGrid() {
+            const pixels = document.querySelectorAll('.pixel');
+            pixels.forEach(pixel => {
+                pixel.style.backgroundColor = '#ffffff';
+            });
+            showNotification('画布已清空！');
+        }
+
+        // Reset to cat preset
+        function resetCat() {
+            const pixels = document.querySelectorAll('.pixel');
+            let pixelIndex = 0;
+            
+            catPreset.forEach((row, rowIndex) => {
+                row.forEach((color, colIndex) => {
+                    const pixel = document.querySelector(`[data-row="${rowIndex}"][data-col="${colIndex}"]`);
+                    if (pixel) {
+                        pixel.style.backgroundColor = color;
+                    }
+                });
+            });
+            
+            showNotification('已重置为猫咪图案！🐱');
+        }
+
+        // Copy to clipboard
+        function copyToClipboard() {
+            const pixels = document.querySelectorAll('.pixel');
+            const gridData = [];
+            
+            gridConfig.forEach((pixelCount, rowIndex) => {
+                const rowData = [];
+                for (let i = 0; i < pixelCount; i++) {
+                    const pixel = document.querySelector(`[data-row="${rowIndex}"][data-col="${i}"]`);
+                    if (pixel) {
+                        const color = pixel.style.backgroundColor;
+                        // Convert rgb to hex
+                        const rgbMatch = color.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+                        if (rgbMatch) {
+                            const hex = '#' + [rgbMatch[1], rgbMatch[2], rgbMatch[3]]
+                                .map(x => parseInt(x).toString(16).padStart(2, '0'))
+                                .join('');
+                            rowData.push(hex);
+                        } else {
+                            rowData.push(color);
+                        }
+                    }
+                }
+                gridData.push(rowData);
+            });
+            
+            // Create text representation
+            let textOutput = '像素画数据：\n\n';
+            textOutput += JSON.stringify(gridData, null, 2);
+            textOutput += '\n\n';
+            
+            // Create visual representation using block characters
+            textOutput += '视觉表示：\n';
+            gridData.forEach(row => {
+                let rowText = '';
+                row.forEach(color => {
+                    // Use block character based on color brightness
+                    if (color === '#ffffff' || color === 'rgb(255, 255, 255)') {
+                        rowText += '  '; // Empty for white
+                    } else {
+                        rowText += '██'; // Block for any color
+                    }
+                });
+                textOutput += rowText + '\n';
+            });
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(textOutput).then(() => {
+                showNotification('已复制到剪贴板！📋');
+            }).catch(err => {
+                showNotification('复制失败，请手动复制。');
+                console.error('Copy failed:', err);
+            });
+        }
+
+        // Show notification
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000);
+        }
+
+        // Initialize the grid when page loads
+        initGrid();
+        // Set initial cat preset
+        resetCat();
+    </script>
+</body>
+</html>
